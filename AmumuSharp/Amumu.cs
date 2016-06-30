@@ -12,6 +12,7 @@ namespace AmumuSharp
     {
         readonly Menu _menu;
 
+        private static readonly Obj_AI_Hero Player = ObjectManager.Player;
         private readonly Spell _spellQ;
         private readonly Spell _spellW;
         private readonly Spell _spellE;
@@ -23,7 +24,7 @@ namespace AmumuSharp
 
         public Amumu() //add Q near mouse (range), 
         {
-            if (ObjectManager.Player.ChampionName != "Amumu")
+            if (Player.ChampionName != "Amumu")
                 return;
 
             (_menu = new Menu("AmumuSharp", "AmumuSharp", true)).AddToMainMenu();
@@ -35,26 +36,27 @@ namespace AmumuSharp
             _orbwalker = new Orbwalking.Orbwalker(_menu.AddSubMenu(new Menu("Orbwalking", "Orbwalking")));
 
             var comboMenu = _menu.AddSubMenu(new Menu("Combo", "Combo"));
-            comboMenu.AddItem(new MenuItem("comboQ" + ObjectManager.Player.ChampionName, "Use Q").SetValue(new StringList(new[] { "No", "Always", "If out of range" }, 1)));
-            comboMenu.AddItem(new MenuItem("comboW" + ObjectManager.Player.ChampionName, "Use W").SetValue(true));
-            comboMenu.AddItem(new MenuItem("comboE" + ObjectManager.Player.ChampionName, "Use E").SetValue(true));
-            comboMenu.AddItem(new MenuItem("comboR" + ObjectManager.Player.ChampionName, "Auto Use R").SetValue(new Slider(3, 0, 5)));
-            comboMenu.AddItem(new MenuItem("comboWPercent" + ObjectManager.Player.ChampionName, "Use W until Mana %").SetValue(new Slider(10)));
+            comboMenu.AddItem(new MenuItem("comboQ" + Player.ChampionName, "Use Q").SetValue(new StringList(new[] { "No", "Always", "If out of range" }, 1)));
+            comboMenu.AddItem(new MenuItem("comboW" + Player.ChampionName, "Use W").SetValue(true));
+            comboMenu.AddItem(new MenuItem("comboE" + Player.ChampionName, "Use E").SetValue(true));
+            comboMenu.AddItem(new MenuItem("comboR" + Player.ChampionName, "Auto Use R").SetValue(new Slider(3, 0, 5)));
+            comboMenu.AddItem(new MenuItem("comboWPercent" + Player.ChampionName, "Use W until Mana %").SetValue(new Slider(10)));
 
             var farmMenu = _menu.AddSubMenu(new Menu("Farming", "Farming"));
-            farmMenu.AddItem(new MenuItem("farmQ" + ObjectManager.Player.ChampionName, "Use Q").SetValue(new StringList(new[] { "No", "Always", "If out of range" }, 2)));
-            farmMenu.AddItem(new MenuItem("farmW" + ObjectManager.Player.ChampionName, "Use W").SetValue(true));
-            farmMenu.AddItem(new MenuItem("farmE" + ObjectManager.Player.ChampionName, "Use E").SetValue(true));
-            farmMenu.AddItem(new MenuItem("farmWPercent" + ObjectManager.Player.ChampionName, "Use W until Mana %").SetValue(new Slider(20)));
+            farmMenu.AddItem(new MenuItem("farmQ" + Player.ChampionName, "Use Q").SetValue(new StringList(new[] { "No", "Always", "If out of range" }, 2)));
+            farmMenu.AddItem(new MenuItem("farmW" + Player.ChampionName, "Use W").SetValue(true));
+            farmMenu.AddItem(new MenuItem("farmWignoremana" + Player.ChampionName, "Always Use W if got blue buff").SetValue(true));
+            farmMenu.AddItem(new MenuItem("farmE" + Player.ChampionName, "Use E").SetValue(true));
+            farmMenu.AddItem(new MenuItem("farmWPercent" + Player.ChampionName, "Use W until Mana %").SetValue(new Slider(20)));
 
             var drawMenu = _menu.AddSubMenu(new Menu("Drawing", "Drawing"));
-            drawMenu.AddItem(new MenuItem("drawQ" + ObjectManager.Player.ChampionName, "Draw Q range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
-            drawMenu.AddItem(new MenuItem("drawW" + ObjectManager.Player.ChampionName, "Draw W range").SetValue(new Circle(false, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
-            drawMenu.AddItem(new MenuItem("drawE" + ObjectManager.Player.ChampionName, "Draw E range").SetValue(new Circle(false, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
-            drawMenu.AddItem(new MenuItem("drawR" + ObjectManager.Player.ChampionName, "Draw R range").SetValue(new Circle(false, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
+            drawMenu.AddItem(new MenuItem("drawQ" + Player.ChampionName, "Draw Q range").SetValue(new Circle(true, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
+            drawMenu.AddItem(new MenuItem("drawW" + Player.ChampionName, "Draw W range").SetValue(new Circle(false, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
+            drawMenu.AddItem(new MenuItem("drawE" + Player.ChampionName, "Draw E range").SetValue(new Circle(false, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
+            drawMenu.AddItem(new MenuItem("drawR" + Player.ChampionName, "Draw R range").SetValue(new Circle(false, System.Drawing.Color.FromArgb(125, 0, 255, 0))));
 
             var miscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
-            miscMenu.AddItem(new MenuItem("aimQ" + ObjectManager.Player.ChampionName, "Q near mouse").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
+            miscMenu.AddItem(new MenuItem("aimQ" + Player.ChampionName, "Q near mouse").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press)));
             miscMenu.AddItem(new MenuItem("packetCast", "Packet Cast").SetValue(true));
 
             _spellQ = new Spell(SpellSlot.Q, 1080);
@@ -77,7 +79,7 @@ namespace AmumuSharp
         {
             AutoUlt();
 
-            if (_menu.Item("aimQ" + ObjectManager.Player.ChampionName).GetValue<KeyBind>().Active)
+            if (_menu.Item("aimQ" + Player.ChampionName).GetValue<KeyBind>().Active)
                 CastQ(Program.Helper.EnemyTeam.Where(x => x.IsValidTarget(_spellQ.Range) && x.Distance(Game.CursorPos) < 400).OrderBy(x => x.Distance(Game.CursorPos)).FirstOrDefault());
 
             switch (_orbwalker.ActiveMode)
@@ -96,7 +98,7 @@ namespace AmumuSharp
 
         void AutoUlt()
         {
-            var comboR = _menu.Item("comboR" + ObjectManager.Player.ChampionName).GetValue<Slider>().Value;
+            var comboR = _menu.Item("comboR" + Player.ChampionName).GetValue<Slider>().Value;
 
             if (comboR > 0 && _spellR.IsReady())
             {
@@ -107,16 +109,16 @@ namespace AmumuSharp
                 {
                     var prediction = Prediction.GetPrediction(enemy, _spellR.Delay);
 
-                    if (prediction != null && prediction.UnitPosition.Distance(ObjectManager.Player.ServerPosition) <= _spellR.Range)
+                    if (prediction != null && prediction.UnitPosition.Distance(Player.ServerPosition) <= _spellR.Range)
                     {
                         enemiesHit++;
 
-                        if (ObjectManager.Player.GetSpellDamage(enemy, SpellSlot.W) >= enemy.Health)
+                        if (Player.GetSpellDamage(enemy, SpellSlot.W) >= enemy.Health)
                             killableHits++;
                     }
                 }
 
-                if (enemiesHit >= comboR || (killableHits >= 1 && ObjectManager.Player.Health / ObjectManager.Player.MaxHealth <= 0.1))
+                if (enemiesHit >= comboR || (killableHits >= 1 && Player.Health / Player.MaxHealth <= 0.1))
                     CastR();
             }
         }
@@ -126,13 +128,13 @@ namespace AmumuSharp
             if (!_spellE.IsReady() || target == null || !target.IsValidTarget())
                 return;
 
-            if (_spellE.GetPrediction(target).UnitPosition.Distance(ObjectManager.Player.ServerPosition) <= _spellE.Range)
-                _spellE.CastOnUnit(ObjectManager.Player);
+            if (_spellE.GetPrediction(target).UnitPosition.Distance(Player.ServerPosition) <= _spellE.Range)
+                _spellE.CastOnUnit(Player);
         }
 
         public float GetManaPercent()
         {
-            return (ObjectManager.Player.Mana / ObjectManager.Player.MaxMana) * 100f;
+            return (Player.Mana / Player.MaxMana) * 100f;
         }
 
         public bool PacketsNoLel()
@@ -142,10 +144,10 @@ namespace AmumuSharp
 
         void Combo()
         {
-            var comboQ = _menu.Item("comboQ" + ObjectManager.Player.ChampionName).GetValue<StringList>().SelectedIndex;
-            var comboW = _menu.Item("comboW" + ObjectManager.Player.ChampionName).GetValue<bool>();
-            var comboE = _menu.Item("comboE" + ObjectManager.Player.ChampionName).GetValue<bool>();
-            var comboR = _menu.Item("comboR" + ObjectManager.Player.ChampionName).GetValue<Slider>().Value;
+            var comboQ = _menu.Item("comboQ" + Player.ChampionName).GetValue<StringList>().SelectedIndex;
+            var comboW = _menu.Item("comboW" + Player.ChampionName).GetValue<bool>();
+            var comboE = _menu.Item("comboE" + Player.ChampionName).GetValue<bool>();
+            var comboR = _menu.Item("comboR" + Player.ChampionName).GetValue<Slider>().Value;
 
             if (comboQ > 0 && _spellQ.IsReady())
             {
@@ -182,11 +184,11 @@ namespace AmumuSharp
 
                 if (target != null)
                 {
-                    var enoughMana = GetManaPercent() >= _menu.Item("comboWPercent" + ObjectManager.Player.ChampionName).GetValue<Slider>().Value;
+                    var enoughMana = GetManaPercent() >= _menu.Item("comboWPercent" + Player.ChampionName).GetValue<Slider>().Value;
 
-                    if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).ToggleState == 1)
+                    if (Player.Spellbook.GetSpell(SpellSlot.W).ToggleState == 1)
                     {
-                        if (ObjectManager.Player.Distance(target.ServerPosition) <= _spellW.Range && enoughMana)
+                        if (Player.Distance(target.ServerPosition) <= _spellW.Range && enoughMana)
                         {
                             _comboW = true;
                             _spellW.Cast();
@@ -200,20 +202,20 @@ namespace AmumuSharp
             }
 
             if (comboE && _spellE.IsReady())
-                CastE(Program.Helper.EnemyTeam.OrderBy(x => x.Distance(ObjectManager.Player)).FirstOrDefault());
+                CastE(Program.Helper.EnemyTeam.OrderBy(x => x.Distance(Player)).FirstOrDefault());
         }
 
         void LaneClear()
         {
-            var farmQ = _menu.Item("farmQ" + ObjectManager.Player.ChampionName).GetValue<StringList>().SelectedIndex;
-            var farmW = _menu.Item("farmW" + ObjectManager.Player.ChampionName).GetValue<bool>();
-            var farmE = _menu.Item("farmE" + ObjectManager.Player.ChampionName).GetValue<bool>();
+            var farmQ = _menu.Item("farmQ" + Player.ChampionName).GetValue<StringList>().SelectedIndex;
+            var farmW = _menu.Item("farmW" + Player.ChampionName).GetValue<bool>();
+            var farmE = _menu.Item("farmE" + Player.ChampionName).GetValue<bool>();
 
             List<Obj_AI_Base> minions;
 
             if (farmQ > 0 && _spellQ.IsReady())
             {
-                Obj_AI_Base minion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, _spellQ.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth).FirstOrDefault(x => _spellQ.GetPrediction(x).Hitchance >= HitChance.Medium);
+                Obj_AI_Base minion = MinionManager.GetMinions(Player.ServerPosition, _spellQ.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth).FirstOrDefault(x => _spellQ.GetPrediction(x).Hitchance >= HitChance.Medium);
 
                 if (minion != null)
                     if (farmQ == 1 || (farmQ == 2 && !Orbwalking.InAutoAttackRange(minion)))
@@ -222,33 +224,33 @@ namespace AmumuSharp
 
             if (farmE && _spellE.IsReady())
             {
-                minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, _spellE.Range, MinionTypes.All, MinionTeam.NotAlly);
-                CastE(minions.OrderBy(x => x.Distance(ObjectManager.Player)).FirstOrDefault());
+                minions = MinionManager.GetMinions(Player.ServerPosition, _spellE.Range, MinionTypes.All, MinionTeam.NotAlly);
+                CastE(minions.OrderBy(x => x.Distance(Player)).FirstOrDefault());
             }
 
             if (!farmW || !_spellW.IsReady())
                 return;
             _comboW = false;
 
-            minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, _spellW.Range, MinionTypes.All, MinionTeam.NotAlly);
+            minions = MinionManager.GetMinions(Player.ServerPosition, _spellW.Range, MinionTypes.All, MinionTeam.NotAlly);
 
             bool anyJungleMobs = minions.Any(x => x.Team == GameObjectTeam.Neutral);
 
-            var enoughMana = GetManaPercent() > _menu.Item("farmWPercent" + ObjectManager.Player.ChampionName).GetValue<Slider>().Value;
+            var enoughMana = GetManaPercent() > _menu.Item("farmWPercent" + Player.ChampionName).GetValue<Slider>().Value;
 
-            if (enoughMana && ((minions.Count >= 3 || anyJungleMobs) && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).ToggleState == 1))
+            if (enoughMana || (Player.HasBuff("CrestoftheAncientGolem") && _menu.Item("farmWignoremana" + Player.ChampionName).GetValue<bool>()) && ((minions.Count >= 3 || anyJungleMobs) && Player.Spellbook.GetSpell(SpellSlot.W).ToggleState == 1))
                 _spellW.Cast();
-            else if (!enoughMana || ((minions.Count <= 2 && !anyJungleMobs) && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).ToggleState == 2))
+            else if (!enoughMana || ((minions.Count <= 2 && !anyJungleMobs) && Player.Spellbook.GetSpell(SpellSlot.W).ToggleState == 2))
                 RegulateWState(!enoughMana);
         }
 
         void RegulateWState(bool ignoreTargetChecks = false)
         {
-            if (!_spellW.IsReady() || ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).ToggleState != 2)
+            if (!_spellW.IsReady() || Player.Spellbook.GetSpell(SpellSlot.W).ToggleState != 2)
                 return;
 
             var target = TargetSelector.GetTarget(_spellW.Range, TargetSelector.DamageType.Magical);
-            var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, _spellW.Range, MinionTypes.All, MinionTeam.NotAlly);
+            var minions = MinionManager.GetMinions(Player.ServerPosition, _spellW.Range, MinionTypes.All, MinionTeam.NotAlly);
 
             if (!ignoreTargetChecks && (target != null || (!_comboW && minions.Count != 0)))
                 return;
@@ -276,24 +278,24 @@ namespace AmumuSharp
 
         void Drawing_OnDraw(EventArgs args)
         {
-            if (!ObjectManager.Player.IsDead)
+            if (!Player.IsDead)
             {
-                var drawQ = _menu.Item("drawQ" + ObjectManager.Player.ChampionName).GetValue<Circle>();
-                var drawW = _menu.Item("drawW" + ObjectManager.Player.ChampionName).GetValue<Circle>();
-                var drawE = _menu.Item("drawE" + ObjectManager.Player.ChampionName).GetValue<Circle>();
-                var drawR = _menu.Item("drawR" + ObjectManager.Player.ChampionName).GetValue<Circle>();
+                var drawQ = _menu.Item("drawQ" + Player.ChampionName).GetValue<Circle>();
+                var drawW = _menu.Item("drawW" + Player.ChampionName).GetValue<Circle>();
+                var drawE = _menu.Item("drawE" + Player.ChampionName).GetValue<Circle>();
+                var drawR = _menu.Item("drawR" + Player.ChampionName).GetValue<Circle>();
 
                 if (drawQ.Active)
-                    Render.Circle.DrawCircle(ObjectManager.Player.Position, _spellQ.Range, drawQ.Color);
+                    Render.Circle.DrawCircle(Player.Position, _spellQ.Range, drawQ.Color);
 
                 if (drawW.Active)
-                    Render.Circle.DrawCircle(ObjectManager.Player.Position, _spellW.Range, drawW.Color);
+                    Render.Circle.DrawCircle(Player.Position, _spellW.Range, drawW.Color);
 
                 if (drawE.Active)
-                    Render.Circle.DrawCircle(ObjectManager.Player.Position, _spellE.Range, drawE.Color);
+                    Render.Circle.DrawCircle(Player.Position, _spellE.Range, drawE.Color);
 
                 if (drawR.Active)
-                    Render.Circle.DrawCircle(ObjectManager.Player.Position, _spellR.Range, drawR.Color);
+                    Render.Circle.DrawCircle(Player.Position, _spellR.Range, drawR.Color);
             }
         }
     }
