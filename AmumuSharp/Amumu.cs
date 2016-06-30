@@ -232,7 +232,7 @@ namespace AmumuSharp
                 return;
             _comboW = false;
 
-            minions = MinionManager.GetMinions(Player.ServerPosition, _spellW.Range, MinionTypes.All, MinionTeam.NotAlly);
+            minions = MinionManager.GetMinions(Player.ServerPosition, _spellW.Range, MinionTypes.All, MinionTeam.NotAlly); 
 
             bool anyJungleMobs = minions.Any(x => x.Team == GameObjectTeam.Neutral);
 
